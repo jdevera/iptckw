@@ -1,0 +1,26 @@
+# iptckw: An Image IPTC Keyword Editor by Jacobo de Vera
+
+    USAGE:
+    iptckw OPTION IMAGE [KEYWORDS]
+
+    OPTIONS:
+     -a IMAGE KEYWORDS   Add the KEYWORDS to the image
+     -d IMAGE KEYWORDS   Delete the KEYWORDS from the image
+     -c IMAGE            Clear all keywords from the image
+     -s IMAGE            Show all keywords from the image
+     -h                  Show this message and exit
+
+
+# Dependencies
+
+ * Boost foreach
+ * Exiv2
+ * CMake
+ 
+# Installation
+
+Run `cmake .` on the main directory and then `make`. Use the `iptckw` binary.
+
+# License
+
+See LICENSE file.
