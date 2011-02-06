@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef OPTIONPARSER_H
 #define OPTIONPARSER_H
 #include <string>
+#include <boost/program_options.hpp>
+#include <boost/shared_ptr.hpp>
 
 
 //! A parser for the IptcKw command line
@@ -43,35 +45,43 @@ class OptionParser
         //! If the requested action needs to write metadata to the image
         bool m_writesImage;
 
+        boost::program_options::variables_map m_varMap;
+        boost::shared_ptr<boost::program_options::options_description> m_pOptDesc;
+        std::string m_imageFileName;
+        std::vector<std::string> m_keywords;
+
 
     public:
 
         //! Constructor from the program's argc and argv
-        OptionParser(int argc, char **argv):m_argc(argc),m_argv(argv) {}
+        OptionParser(int argc, char **argv);
+
+        ~OptionParser() { /*delete m_pOptDesc;*/ }
 
         //! Show the usage help message
         void usage();
 
-        //! Check if the parameters passed int eh command line are valid
+        //! Check if the parameters passed in the command line are valid
         bool validate();
 
         //! If the ADD option has been requested in the command line
-        bool opt_add()    { return (m_argv[1][1] == OPT_ADD);    }
+        bool opt_add()    { return static_cast<bool>(m_varMap.count("add"));    }
 
         //! If the DELETE option has been requested in the command line
-        bool opt_delete() { return (m_argv[1][1] == OPT_DELETE); }
+        bool opt_delete() { return static_cast<bool>(m_varMap.count("delete")); }
 
         //! If the CLEAR option has been requested in the command line
-        bool opt_clear()  { return (m_argv[1][1] == OPT_CLEAR);  }
+        bool opt_clear()  { return static_cast<bool>(m_varMap.count("clear"));  }
 
         //! If the SHOW option has been requested in the command line
-        bool opt_show()   { return (m_argv[1][1] == OPT_SHOW);   }
+        bool opt_show()   { return static_cast<bool>(m_varMap.count("show"));   }
 
         //! If the HELP option has been requested in the command line
-        bool opt_help()   { return (m_argv[1][1] == OPT_HELP);   }
+        bool opt_help()   { return static_cast<bool>(m_varMap.count("help"));   }
 
         //! Get the image file name specified in the command line
-        char*  image()          { return  m_argv[2];             }
+        // char*  image()          { return  m_argv[2];             }
+        std::string  image()          { return  m_imageFileName;             }
 
         //! Beginning of the keywords from the command line
         char** keywords_begin() { return m_argv + 3;             }
