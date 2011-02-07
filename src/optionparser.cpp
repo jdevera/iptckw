@@ -49,7 +49,7 @@ void OptionParser::usage()
     //           << std::endl;
 
 
-    std::cerr << *m_pOptDesc << std::endl;
+    std::cerr << *m_spOptDesc << std::endl;
 
 }
 
@@ -57,21 +57,39 @@ void OptionParser::usage()
 OptionParser::OptionParser(int argc, char **argv)
     :m_argc(argc),
      m_argv(argv),
-     m_readsImage(false),
+//      m_readsImage(false),
      m_writesImage(false),
-     m_pOptDesc(boost::make_shared<po::options_description>("Options")),
+     m_spOptDesc(boost::make_shared<po::options_description>("Options")),
      m_imageFileName("")
 {
 
-    m_pOptDesc->add_options()
-        ("add,a",    po::value<std::string>(), "Add the KEYWORDS to the image")
-        ("delete,d", po::value<std::string>(), "Delete the KEYWORDS from the image")
-        ("clear,c",  po::value<std::string>(), "Clear all keywords from the image")
-        ("show,s",   po::value<std::string>(), "Show all keywords from the image")
+    // Main options, the ones that will be shown in help message
+    m_spOptDesc->add_options()
+        ("add,a",    po::value<std::string>(&m_imageFileName), "Add the KEYWORDS to the image")
+        ("delete,d", po::value<std::string>(&m_imageFileName), "Delete the KEYWORDS from the image")
+        ("clear,c",  po::value<std::string>(&m_imageFileName), "Clear all keywords from the image")
+        ("show,s",   po::value<std::string>(&m_imageFileName), "Show all keywords from the image")
         ("help,h",   "Show this message and exit")
     ;
+    
+    // Additional hidden options (not shown in help message, onoly used for
+    // parsing)
+    po::options_description hidden("Keywords");
+    hidden.add_options()("keywords", po::value<std::vector<std::string> >(), "Keywords");
 
-    po::store(po::parse_command_line(argc, argv, *m_pOptDesc), m_varMap);
+    // Make the keywords option positional
+    po::positional_options_description positional;
+    positional.add("keywords", -1);
+    
+    // Put together all options and use this aggreagate for parsing
+    po::options_description command_line_options;
+    command_line_options.add(*m_spOptDesc);
+    command_line_options.add(hidden);
+    
+    po::store(po::command_line_parser(argc, argv).options(command_line_options)
+                                                 .positional(positional)
+                                                 .run(), 
+              m_varMap);
     po::notify(m_varMap);
 }
 
@@ -85,47 +103,40 @@ bool OptionParser::validate()
 
     // Each option (flag value) can have its own parameter requirements, do
     // further checks here. Also se if the operation they request needs to
-    // read or write metadata from/to the image.
+    // write metadata to the image.
     if (opt_add())
     {
-        // Add reads and writes. It needs an image file and at least one
-        // keyword to work with.
-        m_readsImage = m_writesImage = true;
-        m_imageFileName = m_varMap["add"].as<std::string>();
-        if (m_argc < 4) return false;
+        m_writesImage = true;
+        if (!has_keywords()) return false;
+        optionCount++;
     }
-    else if (opt_delete())
+    if (opt_delete())
     {
-        // Delete reads and writes. It needs an image file and at least one
-        // keyword to work with.
-        m_readsImage = m_writesImage = true;
-        m_imageFileName = m_varMap["delete"].as<std::string>();
-        if (m_argc < 4) return false;
+        m_writesImage = true;
+        if (!has_keywords()) return false;
+        optionCount++;
     }
-    else if (opt_clear())
+    if (opt_clear())
     {
         // Clear writes to the image file and only requires a file name.
-        m_readsImage = m_writesImage = true;
-        m_imageFileName = m_varMap["clear"].as<std::string>();
-        // if (m_argc < 3) return false;
+        m_writesImage = true;
+        if (has_keywords()) return false;
+        optionCount++;
     }
-    else if (opt_show())
+    if (opt_show())
     {
         // Show only reads from the image file and does not require any
         // keywords, only the image file name.
-        m_readsImage = true;
-        m_imageFileName = m_varMap["show"].as<std::string>();
-        // if (m_argc < 3) return false;
+        if (has_keywords()) return false;
+        optionCount++;
     }
-    else if (opt_help())
+    if (opt_help())
     {
         // Help does not require any other arguments.
-        return true;
+        optionCount++;
     }
-    else
-    {
-        // Unknown option.
-        return false;
-    }
+    
+    if (optionCount > 1) return false;
+    
     return true;
 }
