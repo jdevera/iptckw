@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const Exiv2::IptcKey KeywordBag::KeywordsKey("Iptc.Application2.Keywords");
 
-KeywordBag::KeywordBag(const Exiv2::Image::AutoPtr& image)
+KeywordBag::KeywordBag(const Exiv2::Image::AutoPtr& image): m_keywords()
 {
     add(image);
 }

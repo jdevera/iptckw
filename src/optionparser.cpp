@@ -37,6 +37,7 @@ std::string OptionParser::basename (const std::string& path)
 OptionParser::OptionParser(int argc, char* argv[])
     :m_programName(basename(argv[0])),
      m_writesImage(false),
+     m_varMap(),
      m_spOptDesc(boost::make_shared<po::options_description>("Options")),
      m_imageFileName(""),
      m_keywords(),

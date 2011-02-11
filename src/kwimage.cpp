@@ -22,8 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 KwImage::KwImage(const std::string& imagePath)
+    :m_image(Exiv2::ImageFactory::open(imagePath)),
+     m_keywordbag()
 {
-    m_image = Exiv2::ImageFactory::open(imagePath);
 }
 
 void KwImage::readMetadata()

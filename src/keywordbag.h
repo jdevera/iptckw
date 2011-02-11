@@ -59,7 +59,7 @@ class KeywordBag
         KeywordBag(const Exiv2::Image::AutoPtr &image);
 
         //! Default (empty KeywordBag) constructor
-        KeywordBag() {}
+        KeywordBag(): m_keywords() {}
 
         //! Destructor
         virtual ~KeywordBag() {}
