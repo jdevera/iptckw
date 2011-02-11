@@ -14,12 +14,25 @@
 # Dependencies
 
  * Boost foreach
+ * Boost program\_options
  * Exiv2
  * CMake
  
 # Installation
 
-Run `cmake .` on the main directory and then `make`. Use the `iptckw` binary.
+ * Clone the repository and create a `build` directory under it.
+ * Run `cmake ..` fron the build directory and then `make`.
+ * Use the `iptckw` binary.
+
+Or for the lazy:
+
+    git clone git://github.com/jdevera/iptckw.git
+    cd iptckw
+    mkdir build
+    cd build
+    cmake ..
+    make
+    ./iptckw -h
 
 # License
 
