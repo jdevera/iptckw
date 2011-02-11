@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OPTIONPARSER_H
 #include <string>
 #include <vector>
+#include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -34,28 +35,34 @@ class OptionParser
         //! A helper function to get the base name of a path
         static std::string basename (const std::string& path);
 
-        //! The program's argc, stored for convenience
-        int m_argc;
-
-        //! A pointer to the original argv, stored for convenience
-        char** m_argv;
-
-        //! If the requested action needs to read metada from the image
-//         bool m_readsImage;
+        //! The program's name
+        std::string m_programName;
 
         //! If the requested action needs to write metadata to the image
         bool m_writesImage;
 
+        //! Map that holds all options values
         boost::program_options::variables_map m_varMap;
+
+        //! Description of the allowed options
         boost::shared_ptr<boost::program_options::options_description> m_spOptDesc;
+
+        //! Name of the image file
         std::string m_imageFileName;
+
+        //! Keywords
         std::vector<std::string> m_keywords;
 
+        //! Flag to indicate early invalidation
+        bool m_valid;
+
+        //! Keyword container type
         typedef std::vector<std::string> keyword_vector;
 
     public:
-        
-        typedef keyword_vector::const_iterator keyword_iterator;
+
+        //! Constant iterator type on the keywords
+        typedef keyword_vector::const_iterator keyword_const_iterator;
 
         //! Constructor from the program's argc and argv
         OptionParser(int argc, char **argv);
@@ -63,7 +70,7 @@ class OptionParser
         virtual ~OptionParser() {}
 
         //! Show the usage help message
-        void usage();
+        void usage() { std::cerr << *m_spOptDesc << std::endl; };
 
         //! Check if the parameters passed in the command line are valid
         bool validate();
@@ -85,31 +92,21 @@ class OptionParser
 
         //! Get the image file name specified in the command line
         std::string  image()          { return  m_imageFileName;             }
-        
+
         bool has_keywords() { return static_cast<bool>(m_varMap.count("keywords")); }
 
         //! Beginning of the keywords from the command line
-        keyword_iterator keywords_begin() { return m_varMap["keywords"].as<keyword_vector>().begin();        }
+        keyword_const_iterator keywords_begin() { return m_varMap["keywords"].as<keyword_vector>().begin();        }
 
         //! End of the keywords from the command line
-        keyword_iterator keywords_end() { return m_varMap["keywords"].as<keyword_vector>().end();        }
+        keyword_const_iterator keywords_end() { return m_varMap["keywords"].as<keyword_vector>().end();        }
 
         //! Get the program name
-        std::string getProgramName() {return basename(m_argv[0]);}
-
-//        //! Checks if the requested option needs to read metadata from the image
-//         bool readsImage()  { return m_readsImage; }
+        std::string getProgramName() {return m_programName;}
 
         //! Checks if the requested option needs to write metadata to the image
         bool writesImage() { return m_writesImage; }
 
-
-
-//        static const char OPT_ADD    = 'a'; //!< The add option flag
-//        static const char OPT_DELETE = 'd'; //!< The delete option flag
-//        static const char OPT_CLEAR  = 'c'; //!< The clear option flag
-//        static const char OPT_SHOW   = 's'; //!< The show option flag
-//        static const char OPT_HELP   = 'h'; //!< The help option flag
 };
 
 #endif // OPTIONPARSER_H

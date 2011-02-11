@@ -20,8 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "optionparser.h"
 #include <boost/make_shared.hpp>
-#include <iostream>
-#include <cstring>
 
 namespace po = boost::program_options;
 
@@ -35,32 +33,14 @@ std::string OptionParser::basename (const std::string& path)
     return path.substr(found + 1);
 }
 
-void OptionParser::usage()
-{
-    // std::cout << "USAGE:" << std::endl
-    //           << getProgramName() << " OPTION IMAGE [KEYWORDS]" << std::endl
-    //           << std::endl
-    //           << "OPTIONS:" << std::endl
-    //           << " -a IMAGE KEYWORDS   Add the KEYWORDS to the image"        << std::endl 
-    //           << " -d IMAGE KEYWORDS   Delete the KEYWORDS from the image"   << std::endl 
-    //           << " -c IMAGE            Clear all keywords from the image"    << std::endl 
-    //           << " -s IMAGE            Show all keywords from the image"     << std::endl 
-    //           << " -h                  Show this message and exit"
-    //           << std::endl;
 
-
-    std::cerr << *m_spOptDesc << std::endl;
-
-}
-
-
-OptionParser::OptionParser(int argc, char **argv)
-    :m_argc(argc),
-     m_argv(argv),
-//      m_readsImage(false),
+OptionParser::OptionParser(int argc, char* argv[])
+    :m_programName(basename(argv[0])),
      m_writesImage(false),
      m_spOptDesc(boost::make_shared<po::options_description>("Options")),
-     m_imageFileName("")
+     m_imageFileName(""),
+     m_keywords(),
+     m_valid(true)
 {
 
     // Main options, the ones that will be shown in help message
@@ -86,18 +66,27 @@ OptionParser::OptionParser(int argc, char **argv)
     command_line_options.add(*m_spOptDesc);
     command_line_options.add(hidden);
     
-    po::store(po::command_line_parser(argc, argv).options(command_line_options)
-                                                 .positional(positional)
-                                                 .run(), 
-              m_varMap);
-    po::notify(m_varMap);
+    try
+    {
+        po::store(po::command_line_parser(argc, argv).options(command_line_options)
+                                                     .positional(positional)
+                                                     .run(),
+                  m_varMap);
+        po::notify(m_varMap);
+    }
+    catch (boost::program_options::invalid_command_line_syntax)
+    {
+        m_valid = false;
+    }
 }
 
 bool OptionParser::validate()
 {
 
+    // Command line might have already been invalidated
+    if (!m_valid) return false;
 
-    // TODO: Make sure only one option is specified, they are mutually exclusive.
+    // Make sure only one option is specified, they are mutually exclusive.
     int optionCount = 0;
 
 
@@ -136,7 +125,7 @@ bool OptionParser::validate()
         optionCount++;
     }
     
-    if (optionCount > 1) return false;
+    if (optionCount != 1) return false;
     
     return true;
 }
